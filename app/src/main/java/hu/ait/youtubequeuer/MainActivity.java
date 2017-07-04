@@ -124,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<SearchResult> call, Throwable t) {
-                etSearch.setText(t.getLocalizedMessage());
+                Toast.makeText(MainActivity.this, t.getLocalizedMessage(), Toast.LENGTH_LONG).show();
             }
         });
 
@@ -138,6 +138,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void addVideoToQueue(Video video) {
         changeVisibility(View.VISIBLE, View.GONE);
+
+        // TODO: connect to queue view and Realm
         Toast.makeText(this, "Added video: " + video.getTitle(), Toast.LENGTH_SHORT).show();
     }
 
