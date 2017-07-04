@@ -71,22 +71,6 @@ public class QueueRecyclerAdapter extends RecyclerView.Adapter<QueueRecyclerAdap
         notifyItemRemoved(position);
     }
 
-    @Override
-    public void onItemMove(int fromPosition, int toPosition) {
-        // TODO make sure this actually works with Realm
-        if (fromPosition < toPosition) {
-            for (int i = fromPosition; i < toPosition; i++) {
-                Collections.swap(videoQueue, i, i + 1);
-            }
-        } else {
-            for (int i = fromPosition; i > toPosition; i--) {
-                Collections.swap(videoQueue, i, i - 1);
-            }
-        }
-
-        notifyItemMoved(fromPosition, toPosition);
-    }
-
 
     public void addVideo(Video video) {
         realmVideoQueue.beginTransaction();
@@ -101,13 +85,21 @@ public class QueueRecyclerAdapter extends RecyclerView.Adapter<QueueRecyclerAdap
         notifyDataSetChanged();
     }
 
-    public void removeFirstVideo() {
+    public Video popFirstVideo() {
+        Video temp = videoQueue.get(0);
+        Video firstVideo = new Video(temp.getVideoID(), temp.getTitle(), temp.getChannel(), temp.getImgURL());
+
         realmVideoQueue.beginTransaction();
-        videoQueue.get(0).deleteFromRealm();
+        temp.deleteFromRealm();
         realmVideoQueue.commitTransaction();
 
         videoQueue.remove(0);
         notifyItemRemoved(0);
+        return firstVideo;
+    }
+
+    public boolean isQueueEmpty() {
+        return videoQueue.isEmpty();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

@@ -14,6 +14,10 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.google.android.youtube.player.YouTubeInitializationResult;
+import com.google.android.youtube.player.YouTubePlayer;
+import com.google.android.youtube.player.YouTubePlayerFragment;
+
 import java.util.List;
 
 import butterknife.BindView;
@@ -48,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
     private SearchResultsRecyclerAdapter searchRecyclerAdapter;
     private QueueRecyclerAdapter queueRecyclerAdapter;
+    private Video curVideo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +76,26 @@ public class MainActivity extends AppCompatActivity {
         recyclerSearch.setLayoutManager(new LinearLayoutManager(this));
         searchRecyclerAdapter = new SearchResultsRecyclerAdapter(this);
         recyclerSearch.setAdapter(searchRecyclerAdapter);
+
+        if (!queueRecyclerAdapter.isQueueEmpty()) {
+            YouTubePlayerFragment youTubePlayerFragment =
+                    (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.youtubePlayer);
+            youTubePlayerFragment.initialize(getResources().getString(R.string.YOUTUBE_API_KEY),
+                    new YouTubePlayer.OnInitializedListener() {
+                        @Override
+                        public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
+                            if (!b) {
+                                curVideo = queueRecyclerAdapter.popFirstVideo();
+                                youTubePlayer.cueVideo(curVideo.getVideoID());
+                            }
+                        }
+
+                        @Override
+                        public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
+
+                        }
+                    });
+        }
     }
 
     @OnClick(R.id.btnAddVideo)
@@ -107,8 +132,6 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        etSearch.setText("");
-
         searchRecyclerAdapter.clearSearch();
 
         Retrofit retrofit = new Retrofit.Builder()
@@ -144,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        etSearch.setText("");
         hideKeyboard();
     }
 
