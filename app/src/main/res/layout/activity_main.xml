@@ -82,5 +82,18 @@
     </LinearLayout>
 
 
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerSearch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:layout_below="@+id/layoutButtons"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:overScrollMode="always"
+        android:visibility="gone"/>
+
+
 
 </RelativeLayout>

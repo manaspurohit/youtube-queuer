@@ -25,6 +25,8 @@ public class MainActivity extends AppCompatActivity {
     EditText etSearch;
     @BindView(R.id.layoutButtons)
     LinearLayout layoutButtons;
+    @BindView(R.id.recyclerSearch)
+    RecyclerView recyclerSearch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
         btnAddVideo.setVisibility(View.GONE);
         etSearch.setVisibility(View.VISIBLE);
         layoutButtons.setVisibility(View.VISIBLE);
+        recyclerSearch.setVisibility(View.VISIBLE);
 
         etSearch.requestFocus();
         InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -52,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
         btnAddVideo.setVisibility(View.VISIBLE);
         etSearch.setVisibility(View.GONE);
         layoutButtons.setVisibility(View.GONE);
+        recyclerSearch.setVisibility(View.GONE);
     }
 
     @OnFocusChange(R.id.etSearch)
