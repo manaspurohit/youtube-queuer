@@ -1,12 +1,9 @@
 package hu.ait.youtubequeuer.data;
 
 import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
 
 public class Video extends RealmObject {
-    @PrimaryKey
     private String videoID;
-
     private String title;
     private String channel;
     private String imgURL;

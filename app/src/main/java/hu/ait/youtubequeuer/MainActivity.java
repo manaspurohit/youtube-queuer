@@ -18,7 +18,8 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import butterknife.OnFocusChange;
+import hu.ait.youtubequeuer.adapter.QueueRecyclerAdapter;
+import hu.ait.youtubequeuer.adapter.SearchResultsRecyclerAdapter;
 import hu.ait.youtubequeuer.data.Item;
 import hu.ait.youtubequeuer.data.SearchResult;
 import hu.ait.youtubequeuer.data.Video;
@@ -44,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView recyclerSearch;
 
     private SearchResultsRecyclerAdapter searchRecyclerAdapter;
+    private QueueRecyclerAdapter queueRecyclerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,11 +53,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         ButterKnife.bind(this);
+        ((MainApplication) getApplication()).openRealm();
 
-        RecyclerView recyclerSearch = (RecyclerView) findViewById(R.id.recyclerSearch);
+        recyclerQueue.setHasFixedSize(true);
+        recyclerQueue.setLayoutManager(new LinearLayoutManager(this));
+        queueRecyclerAdapter = new QueueRecyclerAdapter(this,
+                ((MainApplication) getApplication()).getRealmCity());
+        recyclerQueue.setAdapter(queueRecyclerAdapter);
+
         recyclerSearch.setHasFixedSize(true);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        recyclerSearch.setLayoutManager(layoutManager);
+        recyclerSearch.setLayoutManager(new LinearLayoutManager(this));
         searchRecyclerAdapter = new SearchResultsRecyclerAdapter(this);
         recyclerSearch.setAdapter(searchRecyclerAdapter);
     }
@@ -139,9 +146,12 @@ public class MainActivity extends AppCompatActivity {
     public void addVideoToQueue(Video video) {
         changeVisibility(View.VISIBLE, View.GONE);
 
-        // TODO: connect to queue view and Realm
-        Toast.makeText(this, "Added video: " + video.getTitle(), Toast.LENGTH_SHORT).show();
+        queueRecyclerAdapter.addVideo(video);
     }
 
-
+    @Override
+    protected void onDestroy() {
+        ((MainApplication) getApplication()).closeRealm();
+        super.onDestroy();
+    }
 }
