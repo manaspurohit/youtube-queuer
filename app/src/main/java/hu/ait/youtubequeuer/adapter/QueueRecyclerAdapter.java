@@ -11,14 +11,17 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import hu.ait.youtubequeuer.R;
 import hu.ait.youtubequeuer.data.Video;
+import hu.ait.youtubequeuer.touch.VideoTouchHelperAdapter;
 import io.realm.Realm;
 import io.realm.RealmResults;
 
-public class QueueRecyclerAdapter extends RecyclerView.Adapter<QueueRecyclerAdapter.ViewHolder> {
+public class QueueRecyclerAdapter extends RecyclerView.Adapter<QueueRecyclerAdapter.ViewHolder>
+        implements VideoTouchHelperAdapter{
 
     private Realm realmVideoQueue;
     private Context context;
@@ -57,6 +60,33 @@ public class QueueRecyclerAdapter extends RecyclerView.Adapter<QueueRecyclerAdap
     public int getItemCount() {
         return videoQueue.size();
     }
+
+    @Override
+    public void onItemDismiss(int position) {
+        realmVideoQueue.beginTransaction();
+        videoQueue.get(position).deleteFromRealm();
+        realmVideoQueue.commitTransaction();
+
+        videoQueue.remove(position);
+        notifyItemRemoved(position);
+    }
+
+    @Override
+    public void onItemMove(int fromPosition, int toPosition) {
+        // TODO make sure this actually works with Realm
+        if (fromPosition < toPosition) {
+            for (int i = fromPosition; i < toPosition; i++) {
+                Collections.swap(videoQueue, i, i + 1);
+            }
+        } else {
+            for (int i = fromPosition; i > toPosition; i--) {
+                Collections.swap(videoQueue, i, i - 1);
+            }
+        }
+
+        notifyItemMoved(fromPosition, toPosition);
+    }
+
 
     public void addVideo(Video video) {
         realmVideoQueue.beginTransaction();

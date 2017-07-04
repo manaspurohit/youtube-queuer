@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -24,6 +25,7 @@ import hu.ait.youtubequeuer.data.Item;
 import hu.ait.youtubequeuer.data.SearchResult;
 import hu.ait.youtubequeuer.data.Video;
 import hu.ait.youtubequeuer.retrofit.SearchAPI;
+import hu.ait.youtubequeuer.touch.VideoTouchHelperCallback;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -61,6 +63,10 @@ public class MainActivity extends AppCompatActivity {
                 ((MainApplication) getApplication()).getRealmCity());
         recyclerQueue.setAdapter(queueRecyclerAdapter);
 
+        ItemTouchHelper.Callback callback = new VideoTouchHelperCallback(queueRecyclerAdapter);
+        ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+        touchHelper.attachToRecyclerView(recyclerQueue);
+
         recyclerSearch.setHasFixedSize(true);
         recyclerSearch.setLayoutManager(new LinearLayoutManager(this));
         searchRecyclerAdapter = new SearchResultsRecyclerAdapter(this);
@@ -81,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         changeVisibility(View.VISIBLE, View.GONE);
 
         searchRecyclerAdapter.clearSearch();
+        etSearch.setText("");
 
         hideKeyboard();
     }
@@ -99,6 +106,8 @@ public class MainActivity extends AppCompatActivity {
             etSearch.setError("Enter a keyword to search");
             return;
         }
+
+        etSearch.setText("");
 
         searchRecyclerAdapter.clearSearch();
 
