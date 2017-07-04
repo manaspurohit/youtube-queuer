@@ -10,6 +10,7 @@ public interface SearchAPI {
     Call<SearchResult> getSearchResult(@Query("part") String part,
                                        @Query("maxResults") String maxResults,
                                        @Query("q") String keywords,
-                                       @Query("type") String type
+                                       @Query("type") String type,
+                                       @Query("key") String key
                                        );
 }
