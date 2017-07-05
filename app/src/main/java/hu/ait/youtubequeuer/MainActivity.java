@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
-
+                        Toast.makeText(MainActivity.this, "YouTube initialization failed", Toast.LENGTH_LONG).show();
                     }
                 });
     }
