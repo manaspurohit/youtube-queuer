@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">YouTubeQueuer</string>
+    <string name="search_empty_error">Enter a keyword to search</string>
 </resources>
