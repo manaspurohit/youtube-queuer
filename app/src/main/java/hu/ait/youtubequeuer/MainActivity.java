@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -13,16 +14,22 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.google.android.youtube.player.YouTubeInitializationResult;
+import com.google.android.youtube.player.YouTubePlayer;
+import com.google.android.youtube.player.YouTubePlayerFragment;
+
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import butterknife.OnFocusChange;
+import hu.ait.youtubequeuer.adapter.QueueRecyclerAdapter;
+import hu.ait.youtubequeuer.adapter.SearchResultsRecyclerAdapter;
 import hu.ait.youtubequeuer.data.Item;
 import hu.ait.youtubequeuer.data.SearchResult;
 import hu.ait.youtubequeuer.data.Video;
 import hu.ait.youtubequeuer.retrofit.SearchAPI;
+import hu.ait.youtubequeuer.touch.VideoTouchHelperCallback;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -44,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView recyclerSearch;
 
     private SearchResultsRecyclerAdapter searchRecyclerAdapter;
+    private QueueRecyclerAdapter queueRecyclerAdapter;
+    private Video curVideo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,13 +60,78 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         ButterKnife.bind(this);
+        ((MainApplication) getApplication()).openRealm();
 
-        RecyclerView recyclerSearch = (RecyclerView) findViewById(R.id.recyclerSearch);
+        recyclerQueue.setHasFixedSize(true);
+        recyclerQueue.setLayoutManager(new LinearLayoutManager(this));
+        queueRecyclerAdapter = new QueueRecyclerAdapter(this,
+                ((MainApplication) getApplication()).getRealmCity());
+        recyclerQueue.setAdapter(queueRecyclerAdapter);
+
+        ItemTouchHelper.Callback callback = new VideoTouchHelperCallback(queueRecyclerAdapter);
+        ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+        touchHelper.attachToRecyclerView(recyclerQueue);
+
         recyclerSearch.setHasFixedSize(true);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        recyclerSearch.setLayoutManager(layoutManager);
+        recyclerSearch.setLayoutManager(new LinearLayoutManager(this));
         searchRecyclerAdapter = new SearchResultsRecyclerAdapter(this);
         recyclerSearch.setAdapter(searchRecyclerAdapter);
+
+        if (!queueRecyclerAdapter.isQueueEmpty()) {
+            YouTubePlayerFragment youTubePlayerFragment =
+                    (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.youtubePlayer);
+            youTubePlayerFragment.initialize(getResources().getString(R.string.YOUTUBE_API_KEY),
+                    new YouTubePlayer.OnInitializedListener() {
+                        @Override
+                        public void onInitializationSuccess(YouTubePlayer.Provider provider, final YouTubePlayer youTubePlayer, boolean b) {
+                            if (!b) {
+                                curVideo = queueRecyclerAdapter.getFirstVideo();
+                                youTubePlayer.loadVideo(curVideo.getVideoID());
+
+                                youTubePlayer.setPlayerStateChangeListener(new YouTubePlayer.PlayerStateChangeListener() {
+                                    @Override
+                                    public void onLoading() {
+
+                                    }
+
+                                    @Override
+                                    public void onLoaded(String s) {
+
+                                    }
+
+                                    @Override
+                                    public void onAdStarted() {
+
+                                    }
+
+                                    @Override
+                                    public void onVideoStarted() {
+
+                                    }
+
+                                    @Override
+                                    public void onVideoEnded() {
+                                        queueRecyclerAdapter.removeFirstVideo();
+                                        if (!queueRecyclerAdapter.isQueueEmpty()) {
+                                            curVideo = queueRecyclerAdapter.getFirstVideo();
+                                            youTubePlayer.loadVideo(curVideo.getVideoID());
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onError(YouTubePlayer.ErrorReason errorReason) {
+
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
+
+                        }
+                    });
+        }
     }
 
     @OnClick(R.id.btnAddVideo)
@@ -74,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
         changeVisibility(View.VISIBLE, View.GONE);
 
         searchRecyclerAdapter.clearSearch();
+        etSearch.setText("");
 
         hideKeyboard();
     }
@@ -128,6 +203,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        etSearch.setText("");
         hideKeyboard();
     }
 
@@ -139,9 +215,12 @@ public class MainActivity extends AppCompatActivity {
     public void addVideoToQueue(Video video) {
         changeVisibility(View.VISIBLE, View.GONE);
 
-        // TODO: connect to queue view and Realm
-        Toast.makeText(this, "Added video: " + video.getTitle(), Toast.LENGTH_SHORT).show();
+        queueRecyclerAdapter.addVideo(video);
     }
 
-
+    @Override
+    protected void onDestroy() {
+        ((MainApplication) getApplication()).closeRealm();
+        super.onDestroy();
+    }
 }

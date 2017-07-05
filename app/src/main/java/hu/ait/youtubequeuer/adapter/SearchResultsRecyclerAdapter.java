@@ -1,7 +1,6 @@
-package hu.ait.youtubequeuer;
+package hu.ait.youtubequeuer.adapter;
 
 import android.content.Context;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +14,8 @@ import com.bumptech.glide.Glide;
 import java.util.ArrayList;
 import java.util.List;
 
+import hu.ait.youtubequeuer.MainActivity;
+import hu.ait.youtubequeuer.R;
 import hu.ait.youtubequeuer.data.Video;
 
 import static hu.ait.youtubequeuer.MainActivity.MAX_RESULTS;
@@ -24,7 +25,7 @@ public class SearchResultsRecyclerAdapter extends RecyclerView.Adapter<SearchRes
     private Context context;
     private List<Video> searchVideos;
 
-    SearchResultsRecyclerAdapter(Context context) {
+    public SearchResultsRecyclerAdapter(Context context) {
         this.context = context;
 
         searchVideos = new ArrayList<Video>(MAX_RESULTS);
