@@ -1,6 +1,7 @@
 package hu.ait.youtubequeuer.adapter;
 
 import android.content.Context;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -85,17 +86,17 @@ public class QueueRecyclerAdapter extends RecyclerView.Adapter<QueueRecyclerAdap
         notifyDataSetChanged();
     }
 
-    public Video popFirstVideo() {
-        Video temp = videoQueue.get(0);
-        Video firstVideo = new Video(temp.getVideoID(), temp.getTitle(), temp.getChannel(), temp.getImgURL());
+    public Video getFirstVideo() {
+        return videoQueue.get(0);
+    }
 
+    public void removeFirstVideo() {
         realmVideoQueue.beginTransaction();
-        temp.deleteFromRealm();
+        videoQueue.get(0).deleteFromRealm();
         realmVideoQueue.commitTransaction();
 
         videoQueue.remove(0);
         notifyItemRemoved(0);
-        return firstVideo;
     }
 
     public boolean isQueueEmpty() {

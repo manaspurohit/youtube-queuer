@@ -83,10 +83,46 @@ public class MainActivity extends AppCompatActivity {
             youTubePlayerFragment.initialize(getResources().getString(R.string.YOUTUBE_API_KEY),
                     new YouTubePlayer.OnInitializedListener() {
                         @Override
-                        public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
+                        public void onInitializationSuccess(YouTubePlayer.Provider provider, final YouTubePlayer youTubePlayer, boolean b) {
                             if (!b) {
-                                curVideo = queueRecyclerAdapter.popFirstVideo();
-                                youTubePlayer.cueVideo(curVideo.getVideoID());
+                                curVideo = queueRecyclerAdapter.getFirstVideo();
+                                youTubePlayer.loadVideo(curVideo.getVideoID());
+
+                                youTubePlayer.setPlayerStateChangeListener(new YouTubePlayer.PlayerStateChangeListener() {
+                                    @Override
+                                    public void onLoading() {
+
+                                    }
+
+                                    @Override
+                                    public void onLoaded(String s) {
+
+                                    }
+
+                                    @Override
+                                    public void onAdStarted() {
+
+                                    }
+
+                                    @Override
+                                    public void onVideoStarted() {
+
+                                    }
+
+                                    @Override
+                                    public void onVideoEnded() {
+                                        queueRecyclerAdapter.removeFirstVideo();
+                                        if (!queueRecyclerAdapter.isQueueEmpty()) {
+                                            curVideo = queueRecyclerAdapter.getFirstVideo();
+                                            youTubePlayer.loadVideo(curVideo.getVideoID());
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onError(YouTubePlayer.ErrorReason errorReason) {
+
+                                    }
+                                });
                             }
                         }
 
