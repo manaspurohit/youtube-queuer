@@ -3,6 +3,7 @@ package hu.ait.youtubequeuer.adapter;
 import android.content.Context;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,6 +65,11 @@ public class QueueRecyclerAdapter extends RecyclerView.Adapter<QueueRecyclerAdap
 
     @Override
     public void onItemDismiss(int position) {
+        if (position == 0) {
+            notifyDataSetChanged();
+            return;
+        }
+
         realmVideoQueue.beginTransaction();
         videoQueue.get(position).deleteFromRealm();
         realmVideoQueue.commitTransaction();

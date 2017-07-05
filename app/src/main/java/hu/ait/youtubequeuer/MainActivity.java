@@ -39,6 +39,10 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MainActivity extends AppCompatActivity {
 
     public static final int MAX_RESULTS = 15;
+    public static final String URL = "https://www.googleapis.com";
+    public static final String PART = "snippet";
+    public static final String TYPE = "video";
+
     @BindView(R.id.recyclerQueue)
     RecyclerView recyclerQueue;
     @BindView(R.id.btnAddVideo)
@@ -52,7 +56,6 @@ public class MainActivity extends AppCompatActivity {
 
     private SearchResultsRecyclerAdapter searchRecyclerAdapter;
     private QueueRecyclerAdapter queueRecyclerAdapter;
-    private Video curVideo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,60 +81,63 @@ public class MainActivity extends AppCompatActivity {
         recyclerSearch.setAdapter(searchRecyclerAdapter);
 
         if (!queueRecyclerAdapter.isQueueEmpty()) {
-            YouTubePlayerFragment youTubePlayerFragment =
-                    (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.youtubePlayer);
-            youTubePlayerFragment.initialize(getResources().getString(R.string.YOUTUBE_API_KEY),
-                    new YouTubePlayer.OnInitializedListener() {
-                        @Override
-                        public void onInitializationSuccess(YouTubePlayer.Provider provider, final YouTubePlayer youTubePlayer, boolean b) {
-                            if (!b) {
-                                curVideo = queueRecyclerAdapter.getFirstVideo();
-                                youTubePlayer.loadVideo(curVideo.getVideoID());
-
-                                youTubePlayer.setPlayerStateChangeListener(new YouTubePlayer.PlayerStateChangeListener() {
-                                    @Override
-                                    public void onLoading() {
-
-                                    }
-
-                                    @Override
-                                    public void onLoaded(String s) {
-
-                                    }
-
-                                    @Override
-                                    public void onAdStarted() {
-
-                                    }
-
-                                    @Override
-                                    public void onVideoStarted() {
-
-                                    }
-
-                                    @Override
-                                    public void onVideoEnded() {
-                                        queueRecyclerAdapter.removeFirstVideo();
-                                        if (!queueRecyclerAdapter.isQueueEmpty()) {
-                                            curVideo = queueRecyclerAdapter.getFirstVideo();
-                                            youTubePlayer.loadVideo(curVideo.getVideoID());
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onError(YouTubePlayer.ErrorReason errorReason) {
-
-                                    }
-                                });
-                            }
-                        }
-
-                        @Override
-                        public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
-
-                        }
-                    });
+            initializeYouTubePlayer(queueRecyclerAdapter.getFirstVideo());
         }
+    }
+
+    private void initializeYouTubePlayer(final Video firstVideo) {
+        YouTubePlayerFragment youTubePlayerFragment =
+                (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.youtubePlayer);
+        youTubePlayerFragment.initialize(getResources().getString(R.string.YOUTUBE_API_KEY),
+                new YouTubePlayer.OnInitializedListener() {
+                    @Override
+                    public void onInitializationSuccess(YouTubePlayer.Provider provider, final YouTubePlayer youTubePlayer, boolean b) {
+                        if (!b) {
+                            youTubePlayer.loadVideo(firstVideo.getVideoID());
+
+                            youTubePlayer.setPlayerStateChangeListener(new YouTubePlayer.PlayerStateChangeListener() {
+                                @Override
+                                public void onLoading() {
+
+                                }
+
+                                @Override
+                                public void onLoaded(String s) {
+
+                                }
+
+                                @Override
+                                public void onAdStarted() {
+
+                                }
+
+                                @Override
+                                public void onVideoStarted() {
+
+                                }
+
+                                @Override
+                                public void onVideoEnded() {
+                                    queueRecyclerAdapter.removeFirstVideo();
+                                    if (!queueRecyclerAdapter.isQueueEmpty()) {
+                                        Video nextVideo = queueRecyclerAdapter.getFirstVideo();
+                                        youTubePlayer.loadVideo(nextVideo.getVideoID());
+                                    }
+                                }
+
+                                @Override
+                                public void onError(YouTubePlayer.ErrorReason errorReason) {
+
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
+                        Toast.makeText(MainActivity.this, "YouTube initialization failed", Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     @OnClick(R.id.btnAddVideo)
@@ -164,22 +170,22 @@ public class MainActivity extends AppCompatActivity {
     @OnClick(R.id.btnSearch)
     public void searchYoutube() {
         if (TextUtils.isEmpty(etSearch.getText().toString())) {
-            etSearch.setError("Enter a keyword to search");
+            etSearch.setError(getString(R.string.search_empty_error));
             return;
         }
 
         searchRecyclerAdapter.clearSearch();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://www.googleapis.com")
+                .baseUrl(URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
         final SearchAPI searchAPI = retrofit.create(SearchAPI.class);
-        Call<SearchResult> callSearch = searchAPI.getSearchResult("snippet",
+        Call<SearchResult> callSearch = searchAPI.getSearchResult(PART,
                 Integer.valueOf(MAX_RESULTS).toString(),
                 etSearch.getText().toString(),
-                "video",
+                TYPE,
                 getResources().getString(R.string.YOUTUBE_API_KEY));
 
         callSearch.enqueue(new Callback<SearchResult>() {
@@ -214,6 +220,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void addVideoToQueue(Video video) {
         changeVisibility(View.VISIBLE, View.GONE);
+
+        if (queueRecyclerAdapter.isQueueEmpty()) {
+            initializeYouTubePlayer(video);
+        }
 
         queueRecyclerAdapter.addVideo(video);
     }
